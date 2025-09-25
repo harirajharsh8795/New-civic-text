@@ -1,14 +1,43 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import os
+import logging
 
-app = FastAPI(title="Text Classifier API")
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Load model
-model_path = "model/saved_model"
-tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
-model = AutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
+app = FastAPI(title="Civic Text Classifier API", version="1.0.0")
+
+# Global variables
+tokenizer = None
+model = None
+
+def load_model():
+    global tokenizer, model
+    try:
+        model_path = "model/saved_model"
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model path {model_path} does not exist")
+        
+        logger.info("Loading tokenizer and model...")
+        tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+        model = AutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
+        model.eval()
+        logger.info("Model loaded successfully!")
+        return True
+    except Exception as e:
+        logger.error(f"Error loading model: {str(e)}")
+        return False
+
+# Load model on startup
+@app.on_event("startup")
+async def startup_event():
+    success = load_model()
+    if not success:
+        logger.error("Failed to load model on startup")
 
 class TextRequest(BaseModel):
     text: str
@@ -19,14 +48,32 @@ def home():
 
 @app.post("/predict")
 def predict(request: TextRequest):
-    inputs = tokenizer(request.text, return_tensors="pt", truncation=True, padding=True)
-    with torch.no_grad():
-        outputs = model(**inputs)
-        predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
-        predicted_class = torch.argmax(predictions, dim=1).item()
+    if tokenizer is None or model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
     
+    try:
+        inputs = tokenizer(request.text, return_tensors="pt", truncation=True, padding=True)
+        with torch.no_grad():
+            outputs = model(**inputs)
+            predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+            predicted_class = torch.argmax(predictions, dim=1).item()
+        
+        # Get the label name
+        predicted_label = model.config.id2label.get(predicted_class, f"class_{predicted_class}")
+        
+        return {
+            "text": request.text,
+            "predicted_class": predicted_class,
+            "predicted_label": predicted_label,
+            "confidence": float(predictions[0][int(predicted_class)].item())
+        }
+    except Exception as e:
+        logger.error(f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+@app.get("/health")
+def health_check():
     return {
-        "text": request.text,
-        "predicted_class": int(predicted_class),
-        "confidence": predictions[0][predicted_class].item() # type: ignore
+        "status": "healthy" if (tokenizer is not None and model is not None) else "unhealthy",
+        "model_loaded": tokenizer is not None and model is not None
     }
