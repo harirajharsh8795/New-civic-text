@@ -1,12 +1,10 @@
+fastapi
+uvicorn
 transformers
 torch
 scikit-learn
 pandas
 matplotlib
-fastapi
-uvicorn
-pydantic
 tensorflow
-librosa
+pydantic
 numpy
-  

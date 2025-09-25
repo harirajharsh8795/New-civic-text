@@ -8,8 +8,9 @@ app = FastAPI(title="Text Classifier API")
 
 # Load model and tokenizer
 model_path = "model/saved_model"
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSequenceClassification.from_pretrained(model_path)
+tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+model = AutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
+
 
 # Define request body
 class TextRequest(BaseModel):
