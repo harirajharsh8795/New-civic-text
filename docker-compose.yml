@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  civic-text-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./model:/app/model:ro  # Mount model as read-only
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.civic-api.rule=Host(`civic-api.localhost`)"
+      - "traefik.http.services.civic-api.loadbalancer.server.port=8000"
