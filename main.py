@@ -1,18 +1,16 @@
+import os
 from fastapi import FastAPI
 from pydantic import BaseModel
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-# Load FastAPI
 app = FastAPI(title="Text Classifier API")
 
-# Load model and tokenizer
+# Load model
 model_path = "model/saved_model"
 tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
 model = AutoModelForSequenceClassification.from_pretrained(model_path, local_files_only=True)
 
-
-# Define request body
 class TextRequest(BaseModel):
     text: str
 
@@ -33,3 +31,9 @@ def predict(request: TextRequest):
         "predicted_class": int(predicted_class),
         "confidence": predictions[0][predicted_class].item()
     }
+
+# Add this so Render binds to correct port
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
