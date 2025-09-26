@@ -21,31 +21,51 @@ classifier = CivicClassifier()
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/':
+        # Log all incoming requests for debugging
+        print(f"📥 GET {self.path} from {self.client_address[0]}")
+        print(f"🏠 Host header: {self.headers.get('Host', 'None')}")
+        print(f"🕸️ User-Agent: {self.headers.get('User-Agent', 'None')}")
+        
+        # Accept requests from Railway's healthcheck hostname
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        
+        if self.path == '/' or self.path == '/health':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            response = {
-                "message": "Civic Text Classifier API is running!",
-                "status": "healthy",
-                "endpoints": ["/", "/health", "/predict"],
-                "port": os.environ.get("PORT", "8000")
-            }
-            self.wfile.write(json.dumps(response).encode())
             
-        elif self.path == '/health':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                "status": "healthy",
-                "message": "API is working perfectly"
-            }
+            if self.path == '/health':
+                response = {
+                    "status": "healthy",
+                    "message": "API is working perfectly",
+                    "hostname": self.headers.get('Host', 'unknown'),
+                    "user_agent": self.headers.get('User-Agent', 'unknown')
+                }
+            else:
+                response = {
+                    "message": "Civic Text Classifier API is running!",
+                    "status": "healthy",
+                    "endpoints": ["/", "/health", "/predict"],
+                    "port": os.environ.get("PORT", "8000")
+                }
+            
             self.wfile.write(json.dumps(response).encode())
             
         else:
             self.send_response(404)
+            self.send_header('Content-type', 'application/json')
             self.end_headers()
+            self.wfile.write(json.dumps({"error": "Not found"}).encode())
+    
+    def do_OPTIONS(self):
+        # Handle preflight requests
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
     
     def do_POST(self):
         if self.path == '/predict':
@@ -77,9 +97,16 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
-    print(f"Starting Civic Text Classifier on 0.0.0.0:{port}")
-    print(f"Health check endpoint: http://0.0.0.0:{port}/health")
+    print(f"🚀 Starting Civic Text Classifier on 0.0.0.0:{port}")
+    print(f"✅ Health check endpoint: http://0.0.0.0:{port}/health")
+    print(f"🔍 Ready for Railway healthcheck from: healthcheck.railway.app")
+    print(f"📝 Accepting all hostnames and origins")
     
-    server = HTTPServer(('0.0.0.0', port), Handler)
-    print(f"Server running on http://0.0.0.0:{port}")
-    server.serve_forever()
+    try:
+        server = HTTPServer(('0.0.0.0', port), Handler)
+        print(f"🎯 Server successfully bound to 0.0.0.0:{port}")
+        print(f"⚡ Server is READY for traffic!")
+        server.serve_forever()
+    except Exception as e:
+        print(f"❌ Error starting server: {e}")
+        raise
