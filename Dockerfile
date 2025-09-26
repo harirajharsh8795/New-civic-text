@@ -1,14 +1,10 @@
-# Python Standard Library Only - Zero Dependencies
+# BULLETPROOF - Python Standard Library Only
 FROM python:3.9-slim
 
 WORKDIR /app
 
-# No external dependencies needed
-COPY requirements-none.txt requirements.txt
-RUN echo "No pip packages to install"
+# Copy application (uses only Python standard library)
+COPY main_bulletproof.py main.py
 
-# Copy standard library application
-COPY main_stdlib.py main.py
-
-# Pure Python execution
+# Run the application - Railway will provide PORT
 CMD ["python", "main.py"]
