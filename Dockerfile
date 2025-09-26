@@ -15,14 +15,11 @@ COPY requirements-minimal.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the robust main application (works with or without ML libs)
-COPY main_robust.py ./main.py
-
-# Copy model folder (optional - app works without it)
-COPY model ./model
+# Copy the guaranteed-to-work main application
+COPY main_simple_guaranteed.py ./main.py
 
 # Expose port
 EXPOSE 8000
 
-# Start the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start the application (use Railway's PORT env var)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
