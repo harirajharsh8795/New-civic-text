@@ -8,7 +8,7 @@ COPY requirements-minimal.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # Copy application
-COPY main_simple_fixed.py main.py
+COPY main_minimal.py main.py
 
-# Use Railway's PORT environment variable
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+# Use Python to run uvicorn directly
+CMD python main.py
