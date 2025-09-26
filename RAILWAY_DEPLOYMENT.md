@@ -104,13 +104,31 @@ curl https://your-app-name.railway.app/
 ## 🚨 Troubleshooting
 
 ### Common Issues:
-1. **Build Fails**: Check `requirements.txt` for version conflicts
-2. **Model Not Loading**: App will use fallback model automatically
-3. **Port Issues**: Railway automatically sets PORT environment variable
+1. **pip command not found**: 
+   - Railway will now use the Dockerfile instead of Nixpacks
+   - Alternative: Use the `requirements-railway.txt` with lighter versions
+   
+2. **Build Fails**: 
+   - Check `requirements.txt` for version conflicts
+   - Try using `requirements-railway.txt` for lighter dependencies
+   
+3. **Model Not Loading**: 
+   - App will use fallback model automatically
+   - Check model files are included in repository
+   
+4. **Port Issues**: 
+   - Railway automatically sets PORT environment variable
+   - App defaults to port 8000 if PORT not set
+
+### Build Solutions:
+If Nixpacks fails, Railway will automatically use the Dockerfile. You can also:
+1. Use `requirements-railway.txt` (lighter versions)
+2. Force Dockerfile build by removing `nixpacks.toml`
 
 ### Logs:
 - View logs in Railway dashboard
 - Look for "Model loaded successfully!" message
+- Check for any Python/pip installation errors
 
 ## 💡 Advantages of Railway vs Render
 
