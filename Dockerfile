@@ -7,8 +7,8 @@ WORKDIR /app
 COPY requirements-minimal.txt requirements.txt
 RUN pip install -r requirements.txt
 
-# Copy application
-COPY main_minimal.py main.py
+# Copy final working application
+COPY main_final.py main.py
 
-# Use Python to run uvicorn directly
-CMD python main.py
+# Run with Python (handles PORT automatically)
+CMD ["python", "main.py"]
