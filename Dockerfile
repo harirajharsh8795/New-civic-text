@@ -1,25 +1,14 @@
-# Ultra-Simple Dockerfile for Railway - Always works
+# Super Simple Dockerfile for Railway
 FROM python:3.9-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Set working directory
 WORKDIR /app
 
-# Copy minimal requirements (guaranteed to work)
-COPY requirements-minimal.txt ./requirements.txt
+# Copy requirements and install
+COPY requirements-minimal.txt requirements.txt
+RUN pip install -r requirements.txt
 
-# Install minimal dependencies (FastAPI only)
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Copy application
+COPY main_simple_fixed.py main.py
 
-# Copy the guaranteed-to-work main application
-COPY main_simple_guaranteed.py ./main.py
-
-# Expose port
-EXPOSE 8000
-
-# Start the application (use Railway's PORT env var)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Use Railway's PORT environment variable
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
