@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import os
+import uvicorn
 
 app = FastAPI(title="Civic Text Classifier API", version="1.0.0")
 
@@ -8,7 +9,7 @@ class TextRequest(BaseModel):
     text: str
 
 @app.get("/")
-async def root():
+def root():
     return {
         "status": "healthy",
         "message": "Civic Text Classifier API",
@@ -17,15 +18,14 @@ async def root():
     }
 
 @app.get("/health")
-async def health():
+def health():
     return {
         "status": "healthy",
-        "message": "Railway healthcheck SUCCESS",
-        "port": os.environ.get("PORT", "8000")
+        "message": "Railway healthcheck SUCCESS"
     }
 
 @app.post("/predict")
-async def predict(request: TextRequest):
+def predict(request: TextRequest):
     text = request.text.lower()
     
     # Simple rule-based classification
@@ -54,6 +54,5 @@ async def predict(request: TextRequest):
     return result
 
 if __name__ == "__main__":
-    import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
