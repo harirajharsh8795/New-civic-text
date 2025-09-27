@@ -2,7 +2,7 @@ import requests
 import json
 
 # Test the API endpoints
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://new-civic-text-production.up.railway.app"
 
 def test_health():
     response = requests.get(f"{BASE_URL}/health")
@@ -23,11 +23,15 @@ def test_predict():
 
 if __name__ == "__main__":
     try:
-        print("Testing FastAPI Civic Text Classifier")
-        print("=" * 50)
+        print("Testing Railway Deployed Civic Text Classifier")
+        print("=" * 60)
+        print(f"🌐 Testing API at: {BASE_URL}")
+        print("=" * 60)
         test_health()
-        print("=" * 50) 
+        print("=" * 60) 
         test_predict()
+        print("=" * 60)
+        print("✅ All tests completed!")
     except Exception as e:
-        print(f"Error: {e}")
-        print("Make sure the server is running with: python main.py")
+        print(f"❌ Error: {e}")
+        print("Check your internet connection and Railway deployment status")
