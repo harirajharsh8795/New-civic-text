@@ -24,6 +24,20 @@ class RailwayHandler(BaseHTTPRequestHandler):
             response = {"status": "healthy", "message": "OK"}
             self.send_json(response)
             
+        elif parsed_path.path == '/predict':
+            # Show usage instructions when accessed via GET (browser)
+            response = {
+                "message": "Prediction endpoint - Use POST method",
+                "method": "POST",
+                "url": "https://new-civic-text-production.up.railway.app/predict",
+                "example": {
+                    "input": {"text": "The street light is broken"},
+                    "curl_example": 'curl -X POST "https://new-civic-text-production.up.railway.app/predict" -H "Content-Type: application/json" -d \'{"text": "The street light is broken"}\''
+                },
+                "supported_categories": ["streetlight", "garbage", "potholes"]
+            }
+            self.send_json(response)
+            
         else:
             self.send_json({"error": "Not found"}, 404)
     
