@@ -19,9 +19,11 @@ def root():
 
 @app.get("/health")
 def health():
+    print("🏥 Health check endpoint called!")
     return {
         "status": "healthy",
-        "message": "Railway healthcheck SUCCESS"
+        "message": "Railway healthcheck SUCCESS",
+        "port": os.environ.get("PORT", "8000")
     }
 
 @app.post("/predict")
@@ -55,4 +57,6 @@ def predict(request: TextRequest):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    print(f"🚀 Starting FastAPI server on port {port}")
+    print(f"🌐 Health check available at: http://0.0.0.0:{port}/health")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
